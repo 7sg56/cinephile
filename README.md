@@ -30,8 +30,6 @@ Cinephile provides a premium, dark-themed user experience for moviegoers to brow
 
 ## 📸 Screenshots
 
-*(Create a `screenshots/` directory and place images here to display them)*
-
 <p float="left">
   <img src="login.png" width="45%" alt="Login Screen" />
   <img src="dashboard.png" width="45%" alt="Now Showing Dashboard" />

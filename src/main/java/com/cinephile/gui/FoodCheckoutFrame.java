@@ -9,6 +9,7 @@ import com.cinephile.model.User;
 import com.cinephile.util.Theme;
 import com.cinephile.gui.components.ModernButton;
 import com.cinephile.gui.components.RoundedPanel;
+import com.cinephile.gui.components.StepIndicatorPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -31,6 +32,18 @@ public class FoodCheckoutFrame extends JFrame {
     private JLabel lblFoodSubtotal;
     private JLabel lblGrandTotal;
 
+    private static final String[] STEP_LABELS = { "Seats", "Food & Drinks", "Payment" };
+
+    // Warm palette for food item card backgrounds
+    private static final Color[] CARD_ACCENT_COLORS = {
+            new Color(60, 40, 30),
+            new Color(40, 50, 40),
+            new Color(50, 35, 45),
+            new Color(35, 45, 55),
+            new Color(55, 45, 30),
+            new Color(40, 40, 55),
+    };
+
     public FoodCheckoutFrame(User user, Show show, List<String> selectedSeats, BigDecimal ticketSubtotal) {
         this.user = user;
         this.show = show;
@@ -43,126 +56,175 @@ public class FoodCheckoutFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Add Food & Amenities");
-        setSize(900, 650);
+        setTitle("Food & Drinks");
+        setSize(1100, 750);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Theme.BACKGROUND_DARK);
 
-        // Header
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBorder(new EmptyBorder(15, 20, 15, 20));
-        header.setBackground(Theme.PANEL_DARK);
+        // ═══════════════ TOP: Step Indicator ═══════════════
+        JPanel topSection = new JPanel(new BorderLayout());
+        topSection.setBackground(Theme.PANEL_DARK);
 
-        JLabel title = new JLabel("Enhance Your Experience (Optional)");
+        StepIndicatorPanel stepIndicator = new StepIndicatorPanel(STEP_LABELS, 1);
+        stepIndicator.setPreferredSize(new Dimension(0, 70));
+        topSection.add(stepIndicator, BorderLayout.CENTER);
+
+        // Sub-header
+        JPanel subHeader = new JPanel(new BorderLayout());
+        subHeader.setBackground(Theme.BACKGROUND_DARK);
+        subHeader.setBorder(new EmptyBorder(12, 30, 12, 30));
+        JLabel title = new JLabel("Grab a Bite");
         title.setFont(Theme.FONT_HEADER);
         title.setForeground(Theme.TEXT_PRIMARY);
-        header.add(title, BorderLayout.WEST);
-        add(header, BorderLayout.NORTH);
+        JLabel subLabel = new JLabel("Add snacks and drinks to your order (optional)");
+        subLabel.setFont(Theme.FONT_CAPTION);
+        subLabel.setForeground(Theme.TEXT_MUTED);
+        subHeader.add(title, BorderLayout.WEST);
+        subHeader.add(subLabel, BorderLayout.EAST);
+        topSection.add(subHeader, BorderLayout.SOUTH);
 
-        // Main List of Amenities
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        centerPanel.setOpaque(false);
+        add(topSection, BorderLayout.NORTH);
 
-        JPanel itemsPanel = new JPanel();
-        itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
-        itemsPanel.setOpaque(false);
-
+        // ═══════════════ CENTER: Food Item Grid ═══════════════
         List<Amenity> items = amenityDAO.getAllActiveAmenities();
-        for (Amenity item : items) {
-            itemsPanel.add(createAmenityRow(item));
-            itemsPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        int cols = 3;
+        int rows = Math.max(1, (int) Math.ceil((double) items.size() / cols));
+
+        JPanel gridPanel = new JPanel(new GridLayout(rows, cols, 16, 16));
+        gridPanel.setOpaque(false);
+        gridPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+
+        for (int i = 0; i < items.size(); i++) {
+            gridPanel.add(createFoodCard(items.get(i), i));
+        }
+        // Fill remaining cells if grid isn't full
+        int remaining = (rows * cols) - items.size();
+        for (int i = 0; i < remaining; i++) {
+            JPanel empty = new JPanel();
+            empty.setOpaque(false);
+            gridPanel.add(empty);
         }
 
-        JScrollPane scrollPane = new JScrollPane(itemsPanel);
+        JScrollPane scrollPane = new JScrollPane(gridPanel);
         scrollPane.setBorder(null);
-        scrollPane.getViewport().setOpaque(false);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.getViewport().setBackground(Theme.BACKGROUND_DARK);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        add(scrollPane, BorderLayout.CENTER);
 
-        com.cinephile.gui.components.ImagePanel foodArt = new com.cinephile.gui.components.ImagePanel("/ui/popcorn.png",
-                20);
-        foodArt.setPreferredSize(new Dimension(300, 400));
-        centerPanel.add(foodArt, BorderLayout.EAST);
-
-        add(centerPanel, BorderLayout.CENTER);
-
-        // Footer Checkout Stats
+        // ═══════════════ FOOTER: Totals & Checkout ═══════════════
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(Theme.PANEL_DARK);
         footer.setBorder(new EmptyBorder(15, 30, 15, 30));
 
-        JPanel stats = new JPanel(new GridLayout(3, 1));
+        JPanel stats = new JPanel();
         stats.setOpaque(false);
-        JLabel lblTicketSub = new JLabel("Tickets Subtotal: $" + ticketSubtotal);
+        stats.setLayout(new BoxLayout(stats, BoxLayout.Y_AXIS));
+
+        JLabel lblTicketSub = new JLabel("Tickets: Rs. " + ticketSubtotal);
         lblTicketSub.setForeground(Theme.TEXT_SECONDARY);
-        lblFoodSubtotal = new JLabel("Food & Upgrades: $0.00");
+        lblTicketSub.setFont(Theme.FONT_LABEL);
+
+        lblFoodSubtotal = new JLabel("Food & Drinks: Rs. 0.00");
         lblFoodSubtotal.setForeground(Theme.TEXT_SECONDARY);
-        lblGrandTotal = new JLabel("Total (excl. Tax): $" + ticketSubtotal);
+        lblFoodSubtotal.setFont(Theme.FONT_LABEL);
+
+        lblGrandTotal = new JLabel("Total: Rs. " + ticketSubtotal);
         lblGrandTotal.setFont(Theme.FONT_HEADER);
         lblGrandTotal.setForeground(Theme.PRIMARY);
 
         stats.add(lblTicketSub);
+        stats.add(Box.createRigidArea(new Dimension(0, 4)));
         stats.add(lblFoodSubtotal);
+        stats.add(Box.createRigidArea(new Dimension(0, 6)));
         stats.add(lblGrandTotal);
 
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btnPanel.setOpaque(false);
+
+        ModernButton btnSkip = new ModernButton("Skip", ModernButton.Style.GHOST);
+        btnSkip.setPreferredSize(new Dimension(140, 44));
+        btnSkip.addActionListener(e -> proceedToPayment());
+
         ModernButton btnCheckout = new ModernButton("Proceed to Payment");
-        btnCheckout.setPreferredSize(new Dimension(250, 45));
-        btnCheckout.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Passing to Payment system... (Phase 6)");
-            // Calculate final taxes and build Booking object
-            BigDecimal taxRate = new BigDecimal("0.10"); // 10% tax
-            BigDecimal combined = ticketSubtotal.add(foodSubtotal);
-            BigDecimal taxes = combined.multiply(taxRate);
-            BigDecimal grandTotal = combined.add(taxes);
+        btnCheckout.setPreferredSize(new Dimension(220, 44));
+        btnCheckout.addActionListener(e -> proceedToPayment());
 
-            Booking booking = new Booking();
-            booking.setUserId(user.getId());
-            booking.setShowId(show.getId());
-            booking.setBookingReference("CINE-" + System.currentTimeMillis());
-            booking.setStatus("CONFIRMED");
-            booking.setTotalTickets(selectedSeats.size());
-            booking.setTicketsSubtotal(ticketSubtotal);
-            booking.setFoodSubtotal(foodSubtotal);
-            booking.setTaxes(taxes);
-            booking.setGrandTotal(grandTotal);
-
-            List<Seat> seats = new ArrayList<>();
-            for (String s : selectedSeats) {
-                seats.add(new Seat(show.getId(), s, false));
-            }
-
-            // Route dynamically to Mock Payment System
-            new PaymentFrame(user, show, booking, seats).setVisible(true);
-            dispose();
-        });
+        btnPanel.add(btnSkip);
+        btnPanel.add(btnCheckout);
 
         footer.add(stats, BorderLayout.WEST);
-        footer.add(btnCheckout, BorderLayout.EAST);
+        footer.add(btnPanel, BorderLayout.EAST);
         add(footer, BorderLayout.SOUTH);
     }
 
-    private JPanel createAmenityRow(Amenity item) {
-        RoundedPanel panel = new RoundedPanel(15, Theme.PANEL_DARK);
-        panel.setLayout(new BorderLayout());
-        panel.setBorder(new EmptyBorder(15, 20, 15, 20));
-        panel.setMaximumSize(new Dimension(800, 70));
+    private JPanel createFoodCard(Amenity item, int index) {
+        RoundedPanel card = new RoundedPanel(16, Theme.CARD_DARK, true);
+        card.setLayout(new BorderLayout());
+        card.setBorder(new EmptyBorder(18, 18, 18, 18));
 
-        JLabel nameLabel = new JLabel(item.getName() + " ($" + item.getPrice() + ")");
-        nameLabel.setFont(Theme.FONT_REGULAR);
+        // Top: colored placeholder for food image
+        JPanel imageArea = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color accent = CARD_ACCENT_COLORS[index % CARD_ACCENT_COLORS.length];
+                g2.setPaint(new GradientPaint(0, 0, accent, getWidth(), getHeight(), accent.darker()));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+
+                // Food icon placeholder text
+                g2.setColor(Theme.withAlpha(Color.WHITE, 60));
+                g2.setFont(new Font("SansSerif", Font.BOLD, 22));
+                String initial = item.getName().substring(0, 1).toUpperCase();
+                FontMetrics fm = g2.getFontMetrics();
+                g2.drawString(initial, (getWidth() - fm.stringWidth(initial)) / 2,
+                        (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                g2.dispose();
+            }
+        };
+        imageArea.setOpaque(false);
+        imageArea.setPreferredSize(new Dimension(0, 80));
+        card.add(imageArea, BorderLayout.NORTH);
+
+        // Center: name and price
+        JPanel infoPanel = new JPanel();
+        infoPanel.setOpaque(false);
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBorder(new EmptyBorder(12, 0, 0, 0));
+
+        JLabel nameLabel = new JLabel(item.getName());
+        nameLabel.setFont(Theme.FONT_SUBHEADER);
         nameLabel.setForeground(Theme.TEXT_PRIMARY);
+        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        actionPanel.setOpaque(false);
+        JLabel priceLabel = new JLabel("Rs. " + item.getPrice());
+        priceLabel.setFont(Theme.FONT_LABEL);
+        priceLabel.setForeground(Theme.ACCENT_GOLD);
+        priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        infoPanel.add(nameLabel);
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+        infoPanel.add(priceLabel);
+
+        card.add(infoPanel, BorderLayout.CENTER);
+
+        // Bottom: quantity stepper
+        JPanel stepperPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        stepperPanel.setOpaque(false);
+        stepperPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 
         JLabel qtyLabel = new JLabel("0");
         qtyLabel.setForeground(Theme.TEXT_PRIMARY);
         qtyLabel.setFont(Theme.FONT_HEADER);
-        qtyLabel.setBorder(new EmptyBorder(0, 15, 0, 15));
+        qtyLabel.setPreferredSize(new Dimension(40, 36));
+        qtyLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        ModernButton btnMinus = new ModernButton("-");
-        btnMinus.setPreferredSize(new Dimension(40, 40));
+        ModernButton btnMinus = new ModernButton("-", ModernButton.Style.SECONDARY);
+        btnMinus.setPreferredSize(new Dimension(38, 36));
+        btnMinus.setFont(Theme.FONT_HEADER);
         btnMinus.addActionListener(e -> {
             int current = cart.getOrDefault(item, 0);
             if (current > 0) {
@@ -172,8 +234,9 @@ public class FoodCheckoutFrame extends JFrame {
             }
         });
 
-        ModernButton btnPlus = new ModernButton("+");
-        btnPlus.setPreferredSize(new Dimension(40, 40));
+        ModernButton btnPlus = new ModernButton("+", ModernButton.Style.SECONDARY);
+        btnPlus.setPreferredSize(new Dimension(38, 36));
+        btnPlus.setFont(Theme.FONT_HEADER);
         btnPlus.addActionListener(e -> {
             int current = cart.getOrDefault(item, 0);
             cart.put(item, current + 1);
@@ -181,14 +244,39 @@ public class FoodCheckoutFrame extends JFrame {
             updateTotals();
         });
 
-        actionPanel.add(btnMinus);
-        actionPanel.add(qtyLabel);
-        actionPanel.add(btnPlus);
+        stepperPanel.add(btnMinus);
+        stepperPanel.add(qtyLabel);
+        stepperPanel.add(btnPlus);
 
-        panel.add(nameLabel, BorderLayout.WEST);
-        panel.add(actionPanel, BorderLayout.EAST);
+        card.add(stepperPanel, BorderLayout.SOUTH);
 
-        return panel;
+        return card;
+    }
+
+    private void proceedToPayment() {
+        BigDecimal taxRate = new BigDecimal("0.10");
+        BigDecimal combined = ticketSubtotal.add(foodSubtotal);
+        BigDecimal taxes = combined.multiply(taxRate).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal grandTotal = combined.add(taxes);
+
+        Booking booking = new Booking();
+        booking.setUserId(user.getId());
+        booking.setShowId(show.getId());
+        booking.setBookingReference("CINE-" + System.currentTimeMillis());
+        booking.setStatus("CONFIRMED");
+        booking.setTotalTickets(selectedSeats.size());
+        booking.setTicketsSubtotal(ticketSubtotal);
+        booking.setFoodSubtotal(foodSubtotal);
+        booking.setTaxes(taxes);
+        booking.setGrandTotal(grandTotal);
+
+        List<Seat> seats = new ArrayList<>();
+        for (String s : selectedSeats) {
+            seats.add(new Seat(show.getId(), s, false));
+        }
+
+        new PaymentFrame(user, show, booking, seats).setVisible(true);
+        dispose();
     }
 
     private void updateTotals() {
@@ -198,7 +286,7 @@ public class FoodCheckoutFrame extends JFrame {
             newFoodTotal = newFoodTotal.add(entry.getKey().getPrice().multiply(qty));
         }
         this.foodSubtotal = newFoodTotal;
-        lblFoodSubtotal.setText("Food & Upgrades: $" + foodSubtotal.toString());
-        lblGrandTotal.setText("Total (excl. Tax): $" + ticketSubtotal.add(foodSubtotal).toString());
+        lblFoodSubtotal.setText("Food & Drinks: Rs. " + foodSubtotal);
+        lblGrandTotal.setText("Total: Rs. " + ticketSubtotal.add(foodSubtotal));
     }
 }

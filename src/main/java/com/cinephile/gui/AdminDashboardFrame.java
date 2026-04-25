@@ -9,7 +9,7 @@ import com.cinephile.gui.components.RoundedPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.util.List;
 
@@ -18,6 +18,7 @@ public class AdminDashboardFrame extends JFrame {
     private MovieDAO movieDAO;
     private JPanel mainContentPanel;
     private CardLayout cardLayout;
+    private ModernButton activeSidebarBtn;
 
     public AdminDashboardFrame(User adminUser) {
         this.admin = adminUser;
@@ -26,180 +27,261 @@ public class AdminDashboardFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Cinephile Admin Dashboard - " + admin.getFullName());
-        setSize(1200, 750);
+        setTitle("Cinephile Admin - " + admin.getFullName());
+        setSize(1280, 800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Theme.BACKGROUND_DARK);
 
-        // Sidebar
-        JPanel sidebar = createSidebar();
-        add(sidebar, BorderLayout.WEST);
+        add(createSidebar(), BorderLayout.WEST);
 
-        // Main Content Area with CardLayout
         cardLayout = new CardLayout();
         mainContentPanel = new JPanel(cardLayout);
         mainContentPanel.setBackground(Theme.BACKGROUND_DARK);
-        mainContentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-
-        // Create individual cards
-        mainContentPanel.add(createDashboardOverviewPanel(), "OVERVIEW");
+        mainContentPanel.setBorder(new EmptyBorder(24, 28, 24, 28));
+        mainContentPanel.add(createOverviewPanel(), "OVERVIEW");
         mainContentPanel.add(createMoviesPanel(), "MOVIES");
-
         add(mainContentPanel, BorderLayout.CENTER);
     }
 
     private JPanel createSidebar() {
         JPanel sidebar = new JPanel();
-        sidebar.setPreferredSize(new Dimension(250, 0));
-        sidebar.setBackground(Theme.PANEL_DARK);
+        sidebar.setPreferredSize(new Dimension(260, 0));
+        sidebar.setBackground(Theme.SIDEBAR_DARK);
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBorder(new EmptyBorder(30, 20, 30, 20));
 
         JLabel logo = new JLabel("CINEPHILE");
-        logo.setFont(Theme.FONT_TITLE);
+        logo.setFont(Theme.FONT_BRAND);
         logo.setForeground(Theme.PRIMARY);
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel roleLabel = new JLabel("Admin Panel");
-        roleLabel.setFont(Theme.FONT_SMALL);
-        roleLabel.setForeground(Theme.TEXT_SECONDARY);
+        roleLabel.setFont(Theme.FONT_CAPTION);
+        roleLabel.setForeground(Theme.TEXT_MUTED);
         roleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Divider
+        JPanel divider = new JPanel();
+        divider.setMaximumSize(new Dimension(220, 1));
+        divider.setBackground(Theme.DIVIDER);
+
         sidebar.add(logo);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 5)));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 4)));
         sidebar.add(roleLabel);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 50)));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 24)));
+        sidebar.add(divider);
+        sidebar.add(Box.createRigidArea(new Dimension(0, 24)));
 
-        ModernButton btnDashboard = new ModernButton("Dashboard");
-        btnDashboard.setMaximumSize(new Dimension(200, 40));
-        btnDashboard.addActionListener(e -> cardLayout.show(mainContentPanel, "OVERVIEW"));
-
-        ModernButton btnMovies = new ModernButton("Manage Movies");
-        btnMovies.setMaximumSize(new Dimension(200, 40));
-        btnMovies.addActionListener(e -> {
-            // refresh data whenever opened
-            mainContentPanel.add(createMoviesPanel(), "MOVIES");
-            cardLayout.show(mainContentPanel, "MOVIES");
+        ModernButton btnDash = new ModernButton("Dashboard", ModernButton.Style.SECONDARY);
+        btnDash.setMaximumSize(new Dimension(220, 42));
+        activeSidebarBtn = btnDash;
+        btnDash.addActionListener(e -> {
+            cardLayout.show(mainContentPanel, "OVERVIEW");
+            setActiveSidebar(btnDash);
         });
 
-        ModernButton btnLogout = new ModernButton("Logout");
-        btnLogout.setMaximumSize(new Dimension(200, 40));
+        ModernButton btnMovies = new ModernButton("Manage Movies", ModernButton.Style.SECONDARY);
+        btnMovies.setMaximumSize(new Dimension(220, 42));
+        btnMovies.addActionListener(e -> {
+            mainContentPanel.add(createMoviesPanel(), "MOVIES");
+            cardLayout.show(mainContentPanel, "MOVIES");
+            setActiveSidebar(btnMovies);
+        });
+
+        ModernButton btnLogout = new ModernButton("Logout", ModernButton.Style.GHOST);
+        btnLogout.setMaximumSize(new Dimension(220, 42));
         btnLogout.addActionListener(e -> {
             new LoginFrame().setVisible(true);
             dispose();
         });
 
-        sidebar.add(btnDashboard);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 20)));
+        sidebar.add(btnDash);
+        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebar.add(btnMovies);
-        sidebar.add(Box.createVerticalGlue()); // Push logout to bottom
+        sidebar.add(Box.createVerticalGlue());
         sidebar.add(btnLogout);
 
         return sidebar;
     }
 
-    private JPanel createDashboardOverviewPanel() {
-        RoundedPanel panel = new RoundedPanel(20, Theme.BACKGROUND_DARK);
-        panel.setLayout(new BorderLayout());
+    private void setActiveSidebar(ModernButton btn) {
+        activeSidebarBtn = btn;
+    }
+
+    // ─── Overview Panel ─────────────────────────────────────────────
+    private JPanel createOverviewPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
 
         JLabel header = new JLabel("Welcome back, " + admin.getFullName());
         header.setFont(Theme.FONT_HEADER);
         header.setForeground(Theme.TEXT_PRIMARY);
-        header.setBorder(new EmptyBorder(0, 0, 20, 0));
-
-        JLabel info = new JLabel("More dashboard widgets (revenue, quick stats) will go here.");
-        info.setFont(Theme.FONT_REGULAR);
-        info.setForeground(Theme.TEXT_SECONDARY);
-
+        header.setBorder(new EmptyBorder(0, 0, 24, 0));
         panel.add(header, BorderLayout.NORTH);
-        panel.add(info, BorderLayout.CENTER);
+
+        // Stats cards row
+        JPanel cardsRow = new JPanel(new GridLayout(1, 3, 20, 0));
+        cardsRow.setOpaque(false);
+        cardsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        cardsRow.setPreferredSize(new Dimension(0, 120));
+
+        List<Movie> movies = movieDAO.getAllMovies();
+        long active = movies.stream().filter(Movie::isActive).count();
+
+        cardsRow.add(createStatCard("Total Movies", String.valueOf(movies.size()), Theme.PRIMARY));
+        cardsRow.add(createStatCard("Active Titles", String.valueOf(active), Theme.SUCCESS_GREEN));
+        cardsRow.add(createStatCard("Revenue", "Rs. --", Theme.ACCENT_GOLD));
+
+        panel.add(cardsRow, BorderLayout.CENTER);
         return panel;
     }
 
-    private JPanel createMoviesPanel() {
-        RoundedPanel panel = new RoundedPanel(20, Theme.PANEL_DARK);
-        panel.setLayout(new BorderLayout());
-        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
+    private JPanel createStatCard(String label, String value, Color accent) {
+        RoundedPanel card = new RoundedPanel(16, Theme.PANEL_DARK, true);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(new EmptyBorder(20, 24, 20, 24));
 
-        // Header and Add Button
+        // Accent top bar
+        JPanel bar = new JPanel();
+        bar.setMaximumSize(new Dimension(40, 4));
+        bar.setPreferredSize(new Dimension(40, 4));
+        bar.setBackground(accent);
+        bar.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblValue = new JLabel(value);
+        lblValue.setFont(Theme.FONT_TITLE);
+        lblValue.setForeground(Theme.TEXT_PRIMARY);
+        lblValue.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblLabel = new JLabel(label);
+        lblLabel.setFont(Theme.FONT_LABEL);
+        lblLabel.setForeground(Theme.TEXT_SECONDARY);
+        lblLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        card.add(bar);
+        card.add(Box.createRigidArea(new Dimension(0, 14)));
+        card.add(lblValue);
+        card.add(Box.createRigidArea(new Dimension(0, 6)));
+        card.add(lblLabel);
+        return card;
+    }
+
+    // ─── Movies Panel ───────────────────────────────────────────────
+    private JPanel createMoviesPanel() {
+        RoundedPanel panel = new RoundedPanel(16, Theme.PANEL_DARK, true);
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new EmptyBorder(24, 24, 24, 24));
+
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
-        JLabel lblTarget = new JLabel("Movie Collection");
-        lblTarget.setFont(Theme.FONT_HEADER);
-        lblTarget.setForeground(Theme.TEXT_PRIMARY);
-
+        topPanel.setBorder(new EmptyBorder(0, 0, 16, 0));
+        JLabel lbl = new JLabel("Movie Collection");
+        lbl.setFont(Theme.FONT_HEADER);
+        lbl.setForeground(Theme.TEXT_PRIMARY);
         ModernButton btnAdd = new ModernButton("+ Add Movie");
         btnAdd.setPreferredSize(new Dimension(150, 40));
         btnAdd.addActionListener(e -> showAddMovieDialog());
-
-        topPanel.add(lblTarget, BorderLayout.WEST);
+        topPanel.add(lbl, BorderLayout.WEST);
         topPanel.add(btnAdd, BorderLayout.EAST);
-        topPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
         panel.add(topPanel, BorderLayout.NORTH);
 
-        // Fetch Movies & Build Table
         List<Movie> movies = movieDAO.getAllMovies();
         String[] columns = { "ID", "Title", "Genre", "Duration (m)", "Status" };
         Object[][] data = new Object[movies.size()][5];
         for (int i = 0; i < movies.size(); i++) {
             Movie m = movies.get(i);
-            data[i][0] = m.getId();
-            data[i][1] = m.getTitle();
-            data[i][2] = m.getGenre();
-            data[i][3] = m.getDurationMinutes();
-            data[i][4] = m.isActive() ? "Active" : "Archived";
+            data[i] = new Object[] { m.getId(), m.getTitle(), m.getGenre(), m.getDurationMinutes(),
+                    m.isActive() ? "Active" : "Archived" };
         }
 
         JTable table = new JTable(new DefaultTableModel(data, columns) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         });
-        table.setBackground(Theme.INPUT_BG);
-        table.setForeground(Theme.TEXT_PRIMARY);
-        table.setFillsViewportHeight(true);
-        table.setRowHeight(30);
+        styleTable(table);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.getViewport().setBackground(Theme.INPUT_BG);
-        panel.add(scrollPane, BorderLayout.CENTER);
-
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBorder(null);
+        sp.getViewport().setBackground(Theme.INPUT_BG);
+        panel.add(sp, BorderLayout.CENTER);
         return panel;
     }
 
-    private void showAddMovieDialog() {
-        // Simplified form for adding movies
-        JDialog dialog = new JDialog(this, "Add New Movie", true);
-        dialog.setSize(400, 500);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
-        dialog.getContentPane().setBackground(Theme.PANEL_DARK);
+    private void styleTable(JTable table) {
+        table.setBackground(Theme.INPUT_BG);
+        table.setForeground(Theme.TEXT_PRIMARY);
+        table.setGridColor(Theme.DIVIDER);
+        table.setRowHeight(36);
+        table.setShowHorizontalLines(true);
+        table.setShowVerticalLines(false);
+        table.setSelectionBackground(Theme.withAlpha(Theme.PRIMARY, 50));
+        table.setSelectionForeground(Theme.TEXT_PRIMARY);
+        table.setFont(Theme.FONT_LABEL);
+        table.setFillsViewportHeight(true);
 
-        JPanel pnl = new JPanel(new GridLayout(6, 2, 10, 10));
-        pnl.setOpaque(false);
-        pnl.setBorder(new EmptyBorder(20, 20, 20, 20));
+        // Header
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(Theme.PANEL_DARK);
+        header.setForeground(Theme.TEXT_SECONDARY);
+        header.setFont(Theme.FONT_SUBHEADER);
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Theme.DIVIDER));
+
+        // Alternating rows
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean focus, int r,
+                    int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, sel, focus, r, c);
+                if (!sel) {
+                    comp.setBackground(r % 2 == 0 ? Theme.INPUT_BG : Theme.CARD_DARK);
+                }
+                comp.setForeground(Theme.TEXT_PRIMARY);
+                setBorder(new EmptyBorder(0, 12, 0, 12));
+                return comp;
+            }
+        });
+    }
+
+    private void showAddMovieDialog() {
+        JDialog dialog = new JDialog(this, "Add New Movie", true);
+        dialog.setSize(420, 480);
+        dialog.setLocationRelativeTo(this);
+        dialog.getContentPane().setBackground(Theme.PANEL_DARK);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel form = new JPanel(new GridLayout(5, 2, 12, 12));
+        form.setOpaque(false);
+        form.setBorder(new EmptyBorder(24, 24, 24, 24));
 
         JTextField txtTitle = new JTextField();
         JTextField txtGenre = new JTextField();
         JTextField txtDuration = new JTextField();
         JTextField txtRating = new JTextField();
         JTextField txtLanguage = new JTextField();
+        JTextField[] fields = { txtTitle, txtGenre, txtDuration, txtRating, txtLanguage };
+        for (JTextField f : fields) {
+            f.setBackground(Theme.INPUT_BG);
+            f.setForeground(Theme.TEXT_PRIMARY);
+            f.setCaretColor(Theme.TEXT_PRIMARY);
+            f.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Theme.BORDER_COLOR), BorderFactory.createEmptyBorder(6, 10, 6, 10)));
+        }
 
-        pnl.add(createLabel("Title:"));
-        pnl.add(txtTitle);
-        pnl.add(createLabel("Genre:"));
-        pnl.add(txtGenre);
-        pnl.add(createLabel("Duration (m):"));
-        pnl.add(txtDuration);
-        pnl.add(createLabel("Rating:"));
-        pnl.add(txtRating);
-        pnl.add(createLabel("Language:"));
-        pnl.add(txtLanguage);
+        form.add(makeLabel("Title:"));
+        form.add(txtTitle);
+        form.add(makeLabel("Genre:"));
+        form.add(txtGenre);
+        form.add(makeLabel("Duration (m):"));
+        form.add(txtDuration);
+        form.add(makeLabel("Rating:"));
+        form.add(txtRating);
+        form.add(makeLabel("Language:"));
+        form.add(txtLanguage);
 
-        ModernButton saveBtn = new ModernButton("Save");
+        ModernButton saveBtn = new ModernButton("Save Movie", ModernButton.Style.SUCCESS);
+        saveBtn.setPreferredSize(new Dimension(0, 44));
         saveBtn.addActionListener(e -> {
             Movie m = new Movie();
             m.setTitle(txtTitle.getText());
@@ -212,10 +294,8 @@ public class AdminDashboardFrame extends JFrame {
             m.setRating(txtRating.getText());
             m.setLanguage(txtLanguage.getText());
             m.setActive(true);
-
             if (movieDAO.addMovie(m)) {
-                JOptionPane.showMessageDialog(dialog, "Movie added successfully!");
-                // refresh via action
+                JOptionPane.showMessageDialog(dialog, "Movie added!");
                 mainContentPanel.add(createMoviesPanel(), "MOVIES");
                 cardLayout.show(mainContentPanel, "MOVIES");
                 dialog.dispose();
@@ -224,14 +304,20 @@ public class AdminDashboardFrame extends JFrame {
             }
         });
 
-        dialog.add(pnl);
-        dialog.add(saveBtn);
+        JPanel btnWrapper = new JPanel(new BorderLayout());
+        btnWrapper.setOpaque(false);
+        btnWrapper.setBorder(new EmptyBorder(0, 24, 20, 24));
+        btnWrapper.add(saveBtn, BorderLayout.CENTER);
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(btnWrapper, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
 
-    private JLabel createLabel(String txt) {
+    private JLabel makeLabel(String txt) {
         JLabel l = new JLabel(txt);
         l.setForeground(Theme.TEXT_SECONDARY);
+        l.setFont(Theme.FONT_LABEL);
         return l;
     }
 }

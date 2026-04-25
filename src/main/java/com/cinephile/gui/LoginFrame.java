@@ -34,16 +34,34 @@ public class LoginFrame extends JFrame {
         root.setBackground(Theme.BACKGROUND_DARK);
 
         // ═══════════════ LEFT PANEL: Cinematic Branding ═══════════════
+        Image heroImg;
+        try {
+            heroImg = new ImageIcon(getClass().getResource("/ui/cinema_hero.png")).getImage();
+        } catch (Exception e) {
+            heroImg = null;
+        }
+        final Image finalHeroImg = heroImg;
+
         JPanel leftPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setPaint(new GradientPaint(0, 0, new Color(25, 5, 8), 0, getHeight(), new Color(10, 10, 14)));
-                g2.fillRect(0, 0, getWidth(), getHeight());
 
-                // Subtle accent glow at top
+                if (finalHeroImg != null) {
+                    // Draw hero image scaled to fill
+                    g2.drawImage(finalHeroImg, 0, 0, getWidth(), getHeight(), this);
+                    // Dark gradient overlay for text readability
+                    g2.setPaint(new GradientPaint(0, 0, new Color(0, 0, 0, 120), 0, getHeight(),
+                            new Color(10, 10, 14, 230)));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                } else {
+                    g2.setPaint(new GradientPaint(0, 0, new Color(25, 5, 8), 0, getHeight(), new Color(10, 10, 14)));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                }
+
+                // Subtle accent glow
                 g2.setPaint(new RadialGradientPaint(
                         new Point(getWidth() / 2, 80), getWidth() / 2f,
                         new float[] { 0f, 1f },
@@ -136,6 +154,14 @@ public class LoginFrame extends JFrame {
                 errorLabel.setText("Invalid email or password.");
             }
         });
+
+        // Make all form elements left-aligned for consistent BoxLayout.Y_AXIS
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        subtitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        emailField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        errorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        loginBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // Assemble form
         loginBox.add(titleLabel);

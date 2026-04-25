@@ -164,29 +164,47 @@ public class FoodCheckoutFrame extends JFrame {
         card.setLayout(new BorderLayout());
         card.setBorder(new EmptyBorder(18, 18, 18, 18));
 
-        // Top: colored placeholder for food image
+        // Load food image from resources
+        String imgResPath = getImagePathForAmenity(item.getName());
+        Image foodImg = null;
+        try {
+            if (imgResPath != null) {
+                foodImg = new ImageIcon(getClass().getResource(imgResPath)).getImage();
+            }
+        } catch (Exception e) {
+            foodImg = null;
+        }
+        final Image finalImg = foodImg;
+
+        // Top: food image panel
         JPanel imageArea = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color accent = CARD_ACCENT_COLORS[index % CARD_ACCENT_COLORS.length];
-                g2.setPaint(new GradientPaint(0, 0, accent, getWidth(), getHeight(), accent.darker()));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setClip(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
 
-                // Food icon placeholder text
-                g2.setColor(Theme.withAlpha(Color.WHITE, 60));
-                g2.setFont(new Font("SansSerif", Font.BOLD, 22));
-                String initial = item.getName().substring(0, 1).toUpperCase();
-                FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(initial, (getWidth() - fm.stringWidth(initial)) / 2,
-                        (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                if (finalImg != null) {
+                    g2.drawImage(finalImg, 0, 0, getWidth(), getHeight(), this);
+                    g2.setColor(new Color(0, 0, 0, 40));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                } else {
+                    Color accent = CARD_ACCENT_COLORS[index % CARD_ACCENT_COLORS.length];
+                    g2.setPaint(new GradientPaint(0, 0, accent, getWidth(), getHeight(), accent.darker()));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    g2.setColor(Theme.withAlpha(Color.WHITE, 60));
+                    g2.setFont(new Font("SansSerif", Font.BOLD, 22));
+                    String initial = item.getName().substring(0, 1).toUpperCase();
+                    FontMetrics fm = g2.getFontMetrics();
+                    g2.drawString(initial, (getWidth() - fm.stringWidth(initial)) / 2,
+                            (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                }
                 g2.dispose();
             }
         };
         imageArea.setOpaque(false);
-        imageArea.setPreferredSize(new Dimension(0, 80));
+        imageArea.setPreferredSize(new Dimension(0, 120));
         card.add(imageArea, BorderLayout.NORTH);
 
         // Center: name and price
@@ -219,12 +237,12 @@ public class FoodCheckoutFrame extends JFrame {
         JLabel qtyLabel = new JLabel("0");
         qtyLabel.setForeground(Theme.TEXT_PRIMARY);
         qtyLabel.setFont(Theme.FONT_HEADER);
-        qtyLabel.setPreferredSize(new Dimension(40, 36));
+        qtyLabel.setPreferredSize(new Dimension(44, 40));
         qtyLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         ModernButton btnMinus = new ModernButton("-", ModernButton.Style.SECONDARY);
-        btnMinus.setPreferredSize(new Dimension(38, 36));
-        btnMinus.setFont(Theme.FONT_HEADER);
+        btnMinus.setPreferredSize(new Dimension(44, 40));
+        btnMinus.setFont(Theme.FONT_REGULAR);
         btnMinus.addActionListener(e -> {
             int current = cart.getOrDefault(item, 0);
             if (current > 0) {
@@ -235,8 +253,8 @@ public class FoodCheckoutFrame extends JFrame {
         });
 
         ModernButton btnPlus = new ModernButton("+", ModernButton.Style.SECONDARY);
-        btnPlus.setPreferredSize(new Dimension(38, 36));
-        btnPlus.setFont(Theme.FONT_HEADER);
+        btnPlus.setPreferredSize(new Dimension(44, 40));
+        btnPlus.setFont(Theme.FONT_REGULAR);
         btnPlus.addActionListener(e -> {
             int current = cart.getOrDefault(item, 0);
             cart.put(item, current + 1);
@@ -288,5 +306,18 @@ public class FoodCheckoutFrame extends JFrame {
         this.foodSubtotal = newFoodTotal;
         lblFoodSubtotal.setText("Food & Drinks: Rs. " + foodSubtotal);
         lblGrandTotal.setText("Total: Rs. " + ticketSubtotal.add(foodSubtotal));
+    }
+
+    private static String getImagePathForAmenity(String name) {
+        String lower = name.toLowerCase();
+        if (lower.contains("popcorn"))
+            return "/ui/popcorn_large.png";
+        if (lower.contains("coke") || lower.contains("cola") || lower.contains("drink"))
+            return "/ui/coke.png";
+        if (lower.contains("3d") || lower.contains("glass"))
+            return "/ui/glasses_3d.png";
+        if (lower.contains("lounge") || lower.contains("upgrade"))
+            return "/ui/lounge.png";
+        return null;
     }
 }

@@ -129,14 +129,20 @@ public class ModernButton extends JButton {
 
         g2.dispose();
 
-        // Slight vertical offset on press for tactile feel
-        if (isPressed) {
-            Graphics g3 = g.create();
-            g3.translate(0, 1);
-            super.paintComponent(g3);
-            g3.dispose();
-        } else {
-            super.paintComponent(g);
-        }
+        // Draw text manually to bypass macOS LAF truncation
+        Graphics2D gt = (Graphics2D) g.create();
+        gt.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+        gt.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int yOffset = isPressed ? 1 : 0;
+
+        gt.setFont(getFont());
+        gt.setColor(getForeground());
+        FontMetrics fm = gt.getFontMetrics();
+        String text = getText();
+        int textX = (w - fm.stringWidth(text)) / 2;
+        int textY = (h + fm.getAscent() - fm.getDescent()) / 2 + yOffset;
+        gt.drawString(text, textX, textY);
+        gt.dispose();
     }
 }

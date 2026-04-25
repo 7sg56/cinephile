@@ -5,7 +5,6 @@ import com.cinephile.model.Show;
 import com.cinephile.model.User;
 import com.cinephile.util.Theme;
 import com.cinephile.gui.components.ModernButton;
-import com.cinephile.gui.components.RoundedPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

@@ -96,15 +96,13 @@ public class ClientDashboardFrame extends JFrame {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // Poster Placeholder (Gray Box)
-        JPanel posterBox = new JPanel();
+        // Poster (High-Res Render)
+        com.cinephile.gui.components.ImagePanel posterBox = new com.cinephile.gui.components.ImagePanel(
+                movie.getPosterPath(), 10);
         posterBox.setBackground(Theme.INPUT_BG);
         posterBox.setMaximumSize(new Dimension(220, 260));
         posterBox.setPreferredSize(new Dimension(220, 260));
         posterBox.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JLabel lblPosterAlt = new JLabel("POSTER");
-        lblPosterAlt.setForeground(Theme.BORDER_COLOR);
-        posterBox.add(lblPosterAlt);
 
         // Details
         JLabel lblTitle = new JLabel(movie.getTitle());
@@ -140,6 +138,20 @@ public class ClientDashboardFrame extends JFrame {
                     return; // user cancelled
                 }
             }
+
+            com.cinephile.dao.BookingDAO bDao = new com.cinephile.dao.BookingDAO();
+            int bookedCount = bDao.getBookedSeatNumbersForShow(selectedShow.getId()).size();
+            int totalCapacity = 60; // 6x10 grid layout
+
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Showtime selected: " + selectedShow.getShowTime() + " | " + selectedShow.getHallName() + "\n" +
+                            "Ticket Base Rate: $" + selectedShow.getBasePrice() + "\n" +
+                            "Seats Available: " + (totalCapacity - bookedCount) + " / " + totalCapacity + "\n\n" +
+                            "Proceed to select your seats?",
+                    "Availability Check", JOptionPane.YES_NO_OPTION);
+
+            if (confirm != JOptionPane.YES_OPTION)
+                return;
 
             new BookingFlowFrame(currentUser, selectedShow).setVisible(true);
         });

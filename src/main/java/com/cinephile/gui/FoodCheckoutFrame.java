@@ -80,6 +80,12 @@ public class FoodCheckoutFrame extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getViewport().setOpaque(false);
         centerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        com.cinephile.gui.components.ImagePanel foodArt = new com.cinephile.gui.components.ImagePanel("/ui/popcorn.png",
+                20);
+        foodArt.setPreferredSize(new Dimension(300, 400));
+        centerPanel.add(foodArt, BorderLayout.EAST);
+
         add(centerPanel, BorderLayout.CENTER);
 
         // Footer Checkout Stats

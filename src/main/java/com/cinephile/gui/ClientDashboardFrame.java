@@ -48,7 +48,7 @@ public class ClientDashboardFrame extends JFrame {
         userLabel.setForeground(Theme.TEXT_PRIMARY);
 
         ModernButton btnLogout = new ModernButton("Logout");
-        btnLogout.setPreferredSize(new Dimension(100, 35));
+        btnLogout.setPreferredSize(new Dimension(130, 40));
         btnLogout.addActionListener(e -> {
             new LoginFrame().setVisible(true);
             dispose();
@@ -121,8 +121,27 @@ public class ClientDashboardFrame extends JFrame {
         bookBtn.setMaximumSize(new Dimension(200, 40));
         bookBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         bookBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                    "Proceeding to booking flow for " + movie.getTitle() + "...\n(Phase 4 Feature coming next!)");
+            com.cinephile.dao.ShowDAO showDAO = new com.cinephile.dao.ShowDAO();
+            List<com.cinephile.model.Show> shows = showDAO.getShowsForMovie(movie.getId());
+
+            if (shows.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No active shows currently available for this movie.");
+                return;
+            }
+
+            com.cinephile.model.Show selectedShow = shows.get(0);
+            if (shows.size() > 1) {
+                com.cinephile.model.Show selection = (com.cinephile.model.Show) JOptionPane.showInputDialog(
+                        this, "Select a show time:\n", "Shows Available", JOptionPane.PLAIN_MESSAGE,
+                        null, shows.toArray(), shows.get(0));
+                if (selection != null) {
+                    selectedShow = selection;
+                } else {
+                    return; // user cancelled
+                }
+            }
+
+            new BookingFlowFrame(currentUser, selectedShow).setVisible(true);
         });
 
         card.add(posterBox);

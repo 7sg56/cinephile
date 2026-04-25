@@ -23,5 +23,10 @@
       <artifactId>mysql-connector-j</artifactId>
       <version>9.2.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+      <version>5.5.13.3</version>
+    </dependency>
   </dependencies>
 </project>

@@ -11,7 +11,7 @@ public class ShowDAO {
         List<Show> shows = new ArrayList<>();
         String query = "SELECT s.*, m.title as movie_title FROM shows s " +
                 "JOIN movies m ON s.movie_id = m.id " +
-                "WHERE s.movie_id = ? AND s.show_date >= CURRENT_DATE " +
+                "WHERE s.movie_id = ? " +
                 "ORDER BY s.show_date ASC, s.show_time ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();

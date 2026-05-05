@@ -54,10 +54,10 @@ public class PDFGenerator {
         document.add(new Paragraph("\n--------------------------------------------------------------\n"));
 
         // Receipt Summary
-        document.add(new Paragraph("Tickets Subtotal: $" + booking.getTicketsSubtotal(), normalFont));
-        document.add(new Paragraph("Food & Amenities: $" + booking.getFoodSubtotal(), normalFont));
-        document.add(new Paragraph("Taxes Applied: $" + booking.getTaxes(), normalFont));
-        document.add(new Paragraph("GRAND TOTAL: $" + booking.getGrandTotal() + " (Paid via " + paymentMethod + ")",
+        document.add(new Paragraph("Tickets Subtotal: Rs." + booking.getTicketsSubtotal(), normalFont));
+        document.add(new Paragraph("Food & Amenities: Rs." + booking.getFoodSubtotal(), normalFont));
+        document.add(new Paragraph("Taxes Applied: Rs." + booking.getTaxes(), normalFont));
+        document.add(new Paragraph("GRAND TOTAL: Rs." + booking.getGrandTotal() + " (Paid via " + paymentMethod + ")",
                 boldFont));
         document.add(new Paragraph("\n--------------------------------------------------------------\n"));
         document.add(new Paragraph("Thank you for choosing Cinephile! Please present this ticket at the counter.",

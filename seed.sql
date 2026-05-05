@@ -4,7 +4,7 @@ INSERT INTO movies (title, genre, duration_minutes, rating, language, descriptio
 ('Interstellar', 'Sci-Fi', 169, 'PG-13', 'English', 'Space exploration', '/posters/interstellar.jpg', TRUE);
 
 INSERT INTO shows (movie_id, show_date, show_time, base_price, hall_name) VALUES 
-(1, CURRENT_DATE, '18:00:00', 12.50, 'Screen 1'),
-(1, CURRENT_DATE, '21:00:00', 14.00, 'Screen 1'),
-(2, CURRENT_DATE, '19:30:00', 12.50, 'Screen 2'),
+(1, CURRENT_DATE, '15:00:00', 12.50, 'Screen 1'),
+(1, CURRENT_DATE, '18:30:00', 14.00, 'Screen 1'),
+(2, CURRENT_DATE, '21:30:00', 12.50, 'Screen 2'),
 (3, CURRENT_DATE, '20:15:00', 15.00, 'Screen IMAX');

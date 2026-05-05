@@ -54,6 +54,6 @@ public class Amenity {
 
     @Override
     public String toString() {
-        return name + " - $" + price;
+        return name + " - Rs." + price;
     }
 }
